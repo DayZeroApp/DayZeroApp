@@ -1,29 +1,80 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import 'react-native-get-random-values';
 import 'react-native-reanimated';
+import 'react-native-url-polyfill/auto';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+// This hook will protect the route access based on user authentication
+function useProtectedRoute() {
+  const segments = useSegments();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check current auth state
+    const unsubscribe = auth().onAuthStateChanged((user: FirebaseAuthTypes.User | null) => {
+      const inAuthGroup = segments[0] === '(tabs)';
+      
+      if (!user && inAuthGroup) {
+        // If user is not signed in and trying to access protected route, redirect to login
+        router.replace('/login');
+      } else if (user && !inAuthGroup) {
+        // If user is signed in and trying to access auth route, redirect to tabs
+        router.replace('/(tabs)');
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [segments, router]);
+
+  return isLoading;
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
+  const isLoading = useProtectedRoute();
+
+  if (!loaded || isLoading) {
     return null;
   }
 
+  // Customize the dark theme to match your app's color scheme
+  const customDarkTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      background: '#000000',
+      card: '#000000',
+      border: '#000000',
+    },
+  };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <View style={{ flex: 1, backgroundColor: '#000000' }}>
+      <ThemeProvider value={customDarkTheme}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#000000' },
+            animation: 'fade',
+          }}
+        >
+          <Stack.Screen name="login" />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="light" />
+      </ThemeProvider>
+    </View>
   );
 }
