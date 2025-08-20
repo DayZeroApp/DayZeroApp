@@ -1,5 +1,5 @@
+// login.tsx
 import Ionicons from '@expo/vector-icons/Ionicons';
-import auth from '@react-native-firebase/auth';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Text, TouchableOpacity } from 'react-native';
@@ -7,14 +7,15 @@ import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
 import { config } from '../lib/config';
 
+import { GoogleAuthProvider, signInWithCredential, signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+
 // Conditionally import Google Sign-In
 let GoogleSignin: any = null;
 let GoogleSigninButton: any = null;
 let statusCodes: any = null;
 
-// Try to import Google Sign-In - it will work in development builds, fail in Expo Go
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const GoogleSignInLib = require('@react-native-google-signin/google-signin');
   GoogleSignin = GoogleSignInLib.GoogleSignin;
   GoogleSigninButton = GoogleSignInLib.GoogleSigninButton;
@@ -30,43 +31,25 @@ export default function LoginScreen() {
   const [isExpoGo, setIsExpoGo] = useState(!GoogleSignin);
 
   useEffect(() => {
-    // Fade in animation
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }).start();
 
-    // Configure Google Sign-In if available
     if (GoogleSignin) {
-      console.log('Google Sign-In is available - configuring...');
       const googleConfig = {
-        // Scopes for user data - email is included by default
         scopes: ['profile'],
-        // Get this from your Google Cloud Console
-        webClientId: config.google.webClientId,
-        // iOS client ID (optional for iOS)
-        iosClientId: config.google.iosClientId,
-        // Whether to prompt for account selection
+        webClientId: config.google.webClientId, // <-- Web OAuth client ID
+        iosClientId: config.google.iosClientId, // optional
         offlineAccess: false,
       };
-      console.log('GoogleSignin configuration:', googleConfig);
       GoogleSignin.configure(googleConfig);
-      // Update state to show we're not in Expo Go
       setIsExpoGo(false);
-      console.log('Set isExpoGo to false - using development build');
     } else {
-      // Update state to show we are in Expo Go
       setIsExpoGo(true);
-      console.log('Set isExpoGo to true - using Expo Go');
     }
-
-    // Auth state is now handled in the root layout
   }, [router, fadeAnim]);
 
   async function handleSignOut() {
     try {
-      await auth().signOut();
+      await signOut(auth);
       console.log('Signed out successfully');
     } catch (error) {
       console.error('Error signing out:', error);
@@ -74,64 +57,30 @@ export default function LoginScreen() {
   }
 
   async function handleSignInWithGoogle() {
-    if (isSigninInProgress) {
-      console.log('Sign in already in progress');
-      return;
-    }
+    if (isSigninInProgress) return;
 
     try {
       setIsSigninInProgress(true);
-      console.log('Button pressed - starting Google sign in...');
 
-      // Check if Google Sign-In is available
       if (!GoogleSignin) {
-        console.error('Google Sign-In is not available in Expo Go');
-        alert('Google Sign-In is not available in Expo Go. Please create a development build to use this feature.');
-        setIsSigninInProgress(false);
+        alert('Google Sign-In is not available in Expo Go. Please use a development build.');
         return;
       }
 
-      // Check if Play Services are available (Android only)
       if (Platform.OS === 'android') {
-        try {
-          await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-          console.log('Play Services check passed');
-        } catch (error) {
-          console.error('Play Services error:', error);
-          setIsSigninInProgress(false);
-          return;
-        }
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       }
 
-      // Play Services check already done above
-
-      // Start the sign-in flow
-      console.log('Starting Google Sign-In...');
-      console.log('Current configuration:', {
-        webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
-        packageName: 'com.startdayzero.DayZero'
-      });
-      
       const userInfo = await GoogleSignin.signIn();
-      // Cast to any to avoid TypeScript errors with the response structure
-      const googleUser = userInfo as any;
-      console.log('Google sign in successful:', googleUser.user ? 'User authenticated' : 'No user data');
-      console.log('Full Google response:', JSON.stringify(googleUser, null, 2));
+      const idToken = (userInfo as any)?.idToken;
+      if (!idToken) throw new Error('No ID token from Google Sign-In');
 
-      // Get the ID token
-      if (!googleUser.idToken) {
-        throw new Error('No ID token present in Google Sign-In response');
-      }
-      const idToken = googleUser.idToken;
-
-      console.log('Got ID token, signing in with Firebase...');
-      
-      // Sign in with Firebase using the ID token
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      const userCredential = await auth().signInWithCredential(googleCredential);
+      // Create Firebase credential using the modular SDK
+      const credential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, credential);
 
       console.log('Firebase sign in successful:', userCredential.user?.email);
-      // Auth state listener will handle navigation
+      // Navigation can be handled here or by an auth-state listener elsewhere
     } catch (error: any) {
       if (statusCodes && error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.log('User cancelled the login flow');
@@ -147,10 +96,9 @@ export default function LoginScreen() {
     }
   }
 
-  // Custom Google Sign-In button for Expo Go
   const CustomGoogleButton = () => (
     <TouchableOpacity
-      onPress={() => alert('Google Sign-In requires a development build. This feature is not available in Expo Go.')}
+      onPress={() => alert('Google Sign-In requires a development build. Not available in Expo Go.')}
       style={{
         backgroundColor: 'white',
         paddingHorizontal: 24,
@@ -166,52 +114,20 @@ export default function LoginScreen() {
       }}
     >
       <Ionicons name="logo-google" size={24} color="#4285F4" style={{ marginRight: 12 }} />
-      <Text style={{ color: '#3c4043', fontSize: 16, fontWeight: '600' }}>
-        Sign in with Google
-      </Text>
+      <Text style={{ color: '#3c4043', fontSize: 16, fontWeight: '600' }}>Sign in with Google</Text>
     </TouchableOpacity>
   );
 
   return (
-    <ThemedView
-      style={{
-        flex: 1,
-        backgroundColor: 'black',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-      }}
-    >
+    <ThemedView style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 }}>
       <Animated.View style={{ opacity: fadeAnim, width: '100%', alignItems: 'center' }}>
-        {/* Title */}
-        <ThemedText
-          style={{
-            fontSize: 42,
-            fontWeight: 'bold',
-            color: 'white',
-            marginBottom: 16,
-            lineHeight: 50,
-            paddingVertical: 4,
-          }}
-        >
+        <ThemedText style={{ fontSize: 42, fontWeight: 'bold', color: 'white', marginBottom: 16, lineHeight: 50, paddingVertical: 4 }}>
           DAY ZERO
         </ThemedText>
-
-        {/* Subtitle */}
-        <ThemedText
-          style={{
-            fontSize: 18,
-            color: '#9ca3af',
-            textAlign: 'center',
-            marginBottom: 48,
-            maxWidth: 300,
-            lineHeight: 24,
-          }}
-        >
+        <ThemedText style={{ fontSize: 18, color: '#9ca3af', textAlign: 'center', marginBottom: 48, maxWidth: 300, lineHeight: 24 }}>
           Reset. Rebuild. Refocus.
         </ThemedText>
 
-        {/* Google Sign In Button - conditionally render based on environment */}
         {isExpoGo ? (
           <CustomGoogleButton />
         ) : GoogleSigninButton ? (
@@ -220,11 +136,7 @@ export default function LoginScreen() {
             color={GoogleSigninButton.Color.Dark}
             onPress={handleSignInWithGoogle}
             disabled={isSigninInProgress}
-            style={{
-              width: 312,
-              height: 48,
-              marginBottom: 16,
-            }}
+            style={{ width: 312, height: 48, marginBottom: 16 }}
           />
         ) : (
           <CustomGoogleButton />
@@ -236,20 +148,11 @@ export default function LoginScreen() {
           </ThemedText>
         )}
 
-        {/* Temporary sign out button for testing */}
         <TouchableOpacity
           onPress={handleSignOut}
-          style={{
-            backgroundColor: '#dc2626',
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            borderRadius: 12,
-            marginTop: 24,
-          }}
+          style={{ backgroundColor: '#dc2626', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, marginTop: 24 }}
         >
-          <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
-            Sign Out (Test)
-          </Text>
+          <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Sign Out (Test)</Text>
         </TouchableOpacity>
       </Animated.View>
     </ThemedView>

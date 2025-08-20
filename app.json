@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "DayZeroApp",
-    "slug": "DayZeroApp",
+    "slug": "dayzeroapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -38,6 +38,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "19491164-a4e1-4882-947b-7c38d99bcb56"
+      }
+    },
+    "owner": "startdayzero"
   }
 }
