@@ -2,12 +2,22 @@
 
 # dependencies
 node_modules/
+npm-debug.log
+yarn-error.log
 
 # Expo
 .expo/
 dist/
 web-build/
 expo-env.d.ts
+.expo-shared/
+.expo-dev/
+dist/
+web-build/
+ios-build/
+android/.gradle/
+android/app/build/
+android/local.properties
 
 # Native
 .kotlin/
@@ -29,6 +39,7 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+Thumbs.db
 
 # local env files
 .env*.local
