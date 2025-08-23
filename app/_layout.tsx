@@ -1,13 +1,14 @@
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import 'react-native-get-random-values';
 import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
+import { auth } from '../lib/firebase';
 
 // This hook will protect the route access based on user authentication
 function useProtectedRoute() {
@@ -17,7 +18,7 @@ function useProtectedRoute() {
 
   useEffect(() => {
     // Check current auth state
-    const unsubscribe = auth().onAuthStateChanged((user: FirebaseAuthTypes.User | null) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       const inAuthGroup = segments[0] === '(tabs)';
       
       if (!user && inAuthGroup) {

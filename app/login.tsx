@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Text, TouchableOpacity } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
-import { config } from '../lib/config';
 
 import { GoogleAuthProvider, signInWithCredential, signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
@@ -34,13 +33,13 @@ export default function LoginScreen() {
     Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }).start();
 
     if (GoogleSignin) {
-      const googleConfig = {
+      // login.tsx (inside useEffect)
+      GoogleSignin.configure({
         scopes: ['profile'],
-        webClientId: config.google.webClientId, // <-- Web OAuth client ID
-        iosClientId: config.google.iosClientId, // optional
+        webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!, // Web client ID
+        iosClientId: process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID, // optional for iOS later
         offlineAccess: false,
-      };
-      GoogleSignin.configure(googleConfig);
+      });
       setIsExpoGo(false);
     } else {
       setIsExpoGo(true);

@@ -6,7 +6,11 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["react", "react-native", "./types/expo-env.d.ts"],
+    "types": [
+      "react",
+      "react-native",
+      "./types/expo-env.d.ts"
+    ],
     "paths": {
       "@/*": [
         "./*"
@@ -16,6 +20,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.ts"
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
   ]
 }

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "960966709168",
+    "project_id": "day-zero-app-69888",
+    "storage_bucket": "day-zero-app-69888.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960966709168:android:a0e7aeb09491b575039075",
+        "android_client_info": {
+          "package_name": "com.startdayzero.DayZero"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "960966709168-m6utg0g7duvrekip0gq51v96ueib3nhc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.startdayzero.DayZero",
+            "certificate_hash": "4fa15bf0b5dc1bb0000deb9409ae541db8eb3a0a"
+          }
+        },
+        {
+          "client_id": "960966709168-hofk5o314mru8nhs5v20l8efd8g3ijnp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAp4iu_eHEGCBovlreus34g7TC7JshetDQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "960966709168-hofk5o314mru8nhs5v20l8efd8g3ijnp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
