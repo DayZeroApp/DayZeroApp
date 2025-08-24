@@ -1,9 +1,26 @@
 {
+  // ----- Editor -----
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
   },
-  "java.compile.nullAnalysis.mode": "automatic",
-  "java.configuration.updateBuildConfiguration": "interactive"
+
+  // ----- Java extension: disable project import in node_modules -----
+  "java.import.gradle.enabled": false,
+  "java.import.maven.enabled": false,
+  "java.configuration.updateBuildConfiguration": "disabled",
+  "java.project.referencedLibraries.exclude": ["**/node_modules/**"],
+
+  // ----- Reduce noise / file watching -----
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.expo/**": true,
+    "**/android/**": false,   // keep true only if you *don’t* edit native code
+    "**/ios/**": false
+  },
+
+  // ----- TypeScript / ESLint ergonomics -----
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false
 }
