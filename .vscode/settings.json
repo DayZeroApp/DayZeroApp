@@ -22,5 +22,7 @@
 
   // ----- TypeScript / ESLint ergonomics -----
   "eslint.workingDirectories": [{ "mode": "auto" }],
-  "typescript.tsserver.experimental.enableProjectDiagnostics": false
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "typescript.tsserver.useSeparateSyntaxServer": true,
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

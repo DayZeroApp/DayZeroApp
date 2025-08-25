@@ -7,55 +7,46 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { cancelHabitNotifications, ensureNotificationSetup, rescheduleHabitNotifications, scheduleHabitNotifications } from "../lib/notifications";
-import { getOnboarded, loadHabits, loadLogs, saveHabits, saveLogs } from "../lib/storage";
+import { getOnboarded, loadLogs, saveLogs } from "../lib/storage";
 
+import { useTasks } from "@/context/TasksProvider";
 import AddHabitModal from "../components/AddHabitModal";
 import HabitCard from "../components/HabitCard";
 import LogHabitModal from "../components/LogHabitModal";
 import { ThemedView } from "../components/ThemedView";
-import { Habit, HabitLog, Mood, hasLoggedToday, isoToday } from "../utils/habits";
+import { HabitLog, Mood, hasLoggedToday, isoToday } from "../utils/habits";
 import ProgressTab from "./ProgressTab";
 import ReflectionTab from "./ReflectionTab";
 
 export default function DashboardScreen(): React.JSX.Element {
   const [tab, setTab] = useState<"dashboard"|"progress"|"reflection">("dashboard");
-  const [habits, setHabits] = useState<Habit[]>([]);
+  const { tasks, hydrated, addTask, toggleTask, deleteTask } = useTasks();
   const [logs, setLogs] = useState<HabitLog[]>([]);
-  const [hydrated, setHydrated] = useState(false); // 👈 NEW
   
   const [addOpen, setAddOpen] = useState(false);
-  const [logOpen, setLogOpen] = useState<{ open: boolean; habit?: Habit }>({
+  const [logOpen, setLogOpen] = useState<{ open: boolean; habit?: any }>({
     open: false,
   });
 
   // state for edit
-  const [editOpen, setEditOpen] = useState<{ open: boolean; habit?: Habit }>({ open: false });
+  const [editOpen, setEditOpen] = useState<{ open: boolean; habit?: any }>({ open: false });
 
-  // Hydrate when screen focuses (coming from onboarding, etc.)
+  // Hydrate logs when screen focuses (coming from onboarding, etc.)
   useFocusEffect(
     ReactNav.useCallback(() => {
       let active = true;
       (async () => {
         const onboarded = await getOnboarded();
-        const [h, l] = await Promise.all([loadHabits(), loadLogs()]);
+        const l = await loadLogs();
         if (!active) return;
 
-        // if not onboarded and storage is empty, you *could* preseed here.
-        // otherwise, don't. In your case, skip seeding entirely:
-        setHabits(h ?? []);
         setLogs(l ?? []);
-        setHydrated(true);
       })();
       return () => { active = false; };
     }, [])
   );
 
-  // Persist ONLY after hydration
-  useEffect(() => {
-    if (!hydrated) return;               // 👈 guard
-    saveHabits(habits);
-  }, [habits, hydrated]);
-
+  // Persist logs ONLY after hydration
   useEffect(() => {
     if (!hydrated) return;               // 👈 guard
     saveLogs(logs);
@@ -66,39 +57,40 @@ export default function DashboardScreen(): React.JSX.Element {
     (async () => {
       await ensureNotificationSetup();
       // Optional: reschedule on launch to be safe (if you persist habits)
-      // await rescheduleAll(habits);
+      // await rescheduleAll(tasks);
     })();
   }, []);
 
   // --- CRUD handlers ---
   // ADD
   const handleAddHabit = async (p: { title: string; icon: string; targetPerWeek: number; targetTimes?: string[] }) => {
-    const id = Math.random().toString(36).slice(2);
-    const newHabit = { id, ...p };
-    setHabits(prev => [newHabit, ...prev]);
+    await addTask(p.title, p.icon, p.targetPerWeek, p.targetTimes);
 
     // schedule reminders for the new habit
+    const newHabit = { id: Math.random().toString(36).slice(2), ...p };
     await scheduleHabitNotifications(newHabit);
   };
 
   // EDIT
   const handleEditHabit = async (id: string, p: { title: string; icon: string; targetPerWeek: number; targetTimes?: string[] }) => {
-    setHabits(prev => prev.map(h => h.id === id ? { ...h, ...p } : h));
+    // TODO: Implement edit functionality in TasksProvider
+    // For now, we'll delete and recreate
+    await deleteTask(id);
+    await addTask(p.title, p.icon, p.targetPerWeek, p.targetTimes);
+    
     const updated = { id, ...p };
     await rescheduleHabitNotifications(updated);
   };
 
   // DELETE
   const deleteHabit = async (id: string) => {
-    setHabits(prev => prev.filter(h => h.id !== id));
+    await deleteTask(id);
     setLogs(prev => prev.filter(l => l.habitId !== id));
     await cancelHabitNotifications(id);
   };
 
-
-
   // quick one-tap log from the card (no note, default mood)
-  const quickLog = async (habit: Habit) => {
+  const quickLog = async (habit: any) => {
     if (hasLoggedToday(habit.id, logs)) return; // guard: already logged today
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLogs((prev) => [
@@ -113,7 +105,7 @@ export default function DashboardScreen(): React.JSX.Element {
   };
 
   // modal submit (supports note + mood)
-  const handleLogHabit = async (habit: Habit, note?: string, mood?: Mood) => {
+  const handleLogHabit = async (habit: any, note?: string, mood?: Mood) => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setLogs((prev) => [
       {
@@ -126,6 +118,9 @@ export default function DashboardScreen(): React.JSX.Element {
       ...prev,
     ]);
   };
+
+  // render from tasks; guard while hydrating
+  if (!hydrated) return <ThemedView><Text style={{color:"#fff"}}>Loading…</Text></ThemedView>;
 
   return (
     <ThemedView style={{ flex: 1, backgroundColor: "#000", padding: 20 }}>
@@ -189,10 +184,10 @@ export default function DashboardScreen(): React.JSX.Element {
         {/* Tab Content */}
         {tab === "dashboard" && (
           <View style={{ marginVertical: 20 }}>
-            {habits.map((habit) => (
+            {tasks.map((task) => (
               <HabitCard
-                key={habit.id}
-                habit={habit}
+                key={task.id}
+                habit={task}
                 logs={logs}
                 onLog={(h) => setLogOpen({ open: true, habit: h })}
                 onQuickLog={quickLog}
@@ -206,10 +201,10 @@ export default function DashboardScreen(): React.JSX.Element {
           </View>
         )}
         {tab === "progress" && (
-          <ProgressTab habits={habits} logs={logs} />
+          <ProgressTab habits={tasks} logs={logs} />
         )}
         {tab === "reflection" && (
-          <ReflectionTab habits={habits} logs={logs} />
+          <ReflectionTab habits={tasks} logs={logs} />
         )}
       </ScrollView>
 

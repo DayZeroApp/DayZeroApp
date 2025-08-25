@@ -2,48 +2,29 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Text, TouchableOpacity } from 'react-native';
+import { Animated, Text, TouchableOpacity } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
 
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, signInWithCredential, signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-
-// Conditionally import Google Sign-In
-let GoogleSignin: any = null;
-let GoogleSigninButton: any = null;
-let statusCodes: any = null;
-
-try {
-  const GoogleSignInLib = require('@react-native-google-signin/google-signin');
-  GoogleSignin = GoogleSignInLib.GoogleSignin;
-  GoogleSigninButton = GoogleSignInLib.GoogleSigninButton;
-  statusCodes = GoogleSignInLib.statusCodes;
-} catch (error) {
-  console.log('Google Sign-In native module not available:', error);
-}
 
 export default function LoginScreen() {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [isSigninInProgress, setIsSigninInProgress] = useState(false);
-  const [isExpoGo, setIsExpoGo] = useState(!GoogleSignin);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }).start();
 
-    if (GoogleSignin) {
-      // login.tsx (inside useEffect)
-      GoogleSignin.configure({
-        scopes: ['profile'],
-        webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!, // Web client ID
-        iosClientId: process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID, // optional for iOS later
-        offlineAccess: false,
-      });
-      setIsExpoGo(false);
-    } else {
-      setIsExpoGo(true);
-    }
+    // Configure Google Sign-In
+    GoogleSignin.configure({
+      scopes: ['profile'],
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!, // Web client ID
+      iosClientId: process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID, // optional for iOS later
+      offlineAccess: false,
+    });
   }, [router, fadeAnim]);
 
   async function handleSignOut() {
@@ -61,35 +42,17 @@ export default function LoginScreen() {
     try {
       setIsSigninInProgress(true);
 
-      if (!GoogleSignin) {
-        alert('Google Sign-In is not available in Expo Go. Please use a development build.');
-        return;
-      }
-
-      if (Platform.OS === 'android') {
-        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      }
-
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
       const userInfo = await GoogleSignin.signIn();
-      const idToken = (userInfo as any)?.idToken;
-      if (!idToken) throw new Error('No ID token from Google Sign-In');
+      const idToken = (userInfo as any).idToken;
+      if (!idToken) throw new Error('No idToken from Google');
+      const cred = GoogleAuthProvider.credential(idToken);
+      await signInWithCredential(auth, cred);
 
-      // Create Firebase credential using the modular SDK
-      const credential = GoogleAuthProvider.credential(idToken);
-      const userCredential = await signInWithCredential(auth, credential);
-
-      console.log('Firebase sign in successful:', userCredential.user?.email);
+      console.log('Firebase sign in successful');
       // Navigation can be handled here or by an auth-state listener elsewhere
     } catch (error: any) {
-      if (statusCodes && error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('User cancelled the login flow');
-      } else if (statusCodes && error.code === statusCodes.IN_PROGRESS) {
-        console.log('Sign in is already in progress');
-      } else if (statusCodes && error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.error('Play services not available or outdated');
-      } else {
-        console.error('Error signing in with Google:', error);
-      }
+      console.error('Error signing in with Google:', error);
     } finally {
       setIsSigninInProgress(false);
     }
@@ -97,7 +60,8 @@ export default function LoginScreen() {
 
   const CustomGoogleButton = () => (
     <TouchableOpacity
-      onPress={() => alert('Google Sign-In requires a development build. Not available in Expo Go.')}
+      onPress={handleSignInWithGoogle}
+      disabled={isSigninInProgress}
       style={{
         backgroundColor: 'white',
         paddingHorizontal: 24,
@@ -110,10 +74,13 @@ export default function LoginScreen() {
         justifyContent: 'center',
         height: 48,
         marginBottom: 16,
+        opacity: isSigninInProgress ? 0.6 : 1,
       }}
     >
       <Ionicons name="logo-google" size={24} color="#4285F4" style={{ marginRight: 12 }} />
-      <Text style={{ color: '#3c4043', fontSize: 16, fontWeight: '600' }}>Sign in with Google</Text>
+      <Text style={{ color: '#3c4043', fontSize: 16, fontWeight: '600' }}>
+        {isSigninInProgress ? 'Signing in...' : 'Sign in with Google'}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -127,25 +94,7 @@ export default function LoginScreen() {
           Reset. Rebuild. Refocus.
         </ThemedText>
 
-        {isExpoGo ? (
-          <CustomGoogleButton />
-        ) : GoogleSigninButton ? (
-          <GoogleSigninButton
-            size={GoogleSigninButton.Size.Wide}
-            color={GoogleSigninButton.Color.Dark}
-            onPress={handleSignInWithGoogle}
-            disabled={isSigninInProgress}
-            style={{ width: 312, height: 48, marginBottom: 16 }}
-          />
-        ) : (
-          <CustomGoogleButton />
-        )}
-
-        {isExpoGo && (
-          <ThemedText style={{ color: '#ff6b6b', marginTop: 8, textAlign: 'center' }}>
-            Google Sign-In requires a development build.{'\n'}This feature is not available in Expo Go.
-          </ThemedText>
-        )}
+        <CustomGoogleButton />
 
         <TouchableOpacity
           onPress={handleSignOut}

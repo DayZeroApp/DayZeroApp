@@ -1,10 +1,10 @@
+import { useTasks } from "@/context/TasksProvider";
 import { router } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Animated, Keyboard, Pressable, TextInput, View } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
-import { loadHabits, saveHabits, setOnboarded } from "../lib/storage";
-import { Habit } from "../utils/habits";
+import { setOnboarded } from "../lib/storage";
 
 const DURATION_PRESETS = [7, 14, 21];
 
@@ -12,6 +12,8 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(1);
   const [habit, setHabit] = useState('');
   const [days, setDays] = useState(7);
+
+  const { addTask } = useTasks();
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -31,6 +33,12 @@ export default function OnboardingScreen() {
     });
   };
 
+  async function handleFinishOnboarding(title: string) {
+    await addTask(title.trim());
+    await setOnboarded();
+    router.replace("/(tabs)");
+  }
+
   const handlePrimary = async () => {
     console.log("ONBOARD: handlePrimary called, current step:", step);
     Keyboard.dismiss();
@@ -44,13 +52,11 @@ export default function OnboardingScreen() {
     try {
       // Validate inputs before creating habit
       const trimmedTitle = habit.trim();
-      const calculatedTarget = Math.min(7, Math.max(1, Math.round(days / 2))) || 5;
       
       console.log("ONBOARD: Validating inputs:", {
         rawHabit: habit,
         trimmedTitle,
-        days,
-        calculatedTarget
+        days
       });
 
       if (!trimmedTitle) {
@@ -63,37 +69,12 @@ export default function OnboardingScreen() {
         return;
       }
 
-      const newHabit: Habit = {
-        id: Math.random().toString(36).slice(2),
-        title: trimmedTitle,
-        icon: "meditation",
-        targetPerWeek: calculatedTarget,
-        targetTimes: ["08:00"],
-      };
+      console.log("ONBOARD: About to finish onboarding with habit:", trimmedTitle);
       
-      console.log("ONBOARD: Created valid habit:", {
-        id: newHabit.id,
-        title: newHabit.title,
-        targetPerWeek: newHabit.targetPerWeek,
-        targetTimes: newHabit.targetTimes
-      });
-      console.log("ONBOARD: Loading existing habits...");
-      const existing = await loadHabits();
-      console.log("ONBOARD: Existing habits:", existing);
-      const habitsToSave = [newHabit, ...(existing ?? [])];
-      console.log("ONBOARD: About to save habits:", JSON.stringify(habitsToSave, null, 2));
+      // Use the new handler
+      await handleFinishOnboarding(trimmedTitle);
       
-      // Save both the habit and mark as onboarded
-      await Promise.all([
-        saveHabits(habitsToSave),
-        setOnboarded(true)
-      ]);
-      
-      console.log("ONBOARD: Saved habit and marked as onboarded");
-      
-      // tiny yield so write flushes
-      await new Promise(r => setTimeout(r, 0));
-      router.replace("/(tabs)");
+      console.log("ONBOARD: Onboarding completed successfully");
     } catch (e) {
       console.log("ONBOARD: save failed", e);
     }
