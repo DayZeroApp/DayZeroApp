@@ -1,6 +1,12 @@
 // hooks/useTasks.ts
-import { loadTasks, addTask as sAdd, deleteTask as sDel, toggleTask as sToggle, Task } from "@/lib/storage";
 import { useCallback, useEffect, useState } from "react";
+
+export type Task = {
+  id: string;
+  title: string;
+  done: boolean;
+  // optional: remindAt?: string
+};
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -8,26 +14,27 @@ export function useTasks() {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    setTasks(await loadTasks());
+    // In-memory storage - no persistence needed
     setLoading(false);
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
 
   const addTask = useCallback(async (title: string) => {
-    await sAdd(title);
-    await refresh();
-  }, [refresh]);
+    const id = Math.random().toString(36).slice(2);
+    const newTask: Task = { id, title, done: false };
+    setTasks(prev => [newTask, ...prev]);
+  }, []);
 
   const toggleTask = useCallback(async (id: string) => {
-    await sToggle(id);
-    await refresh();
-  }, [refresh]);
+    setTasks(prev => prev.map(task => 
+      task.id === id ? { ...task, done: !task.done } : task
+    ));
+  }, []);
 
   const deleteTask = useCallback(async (id: string) => {
-    await sDel(id);
-    await refresh();
-  }, [refresh]);
+    setTasks(prev => prev.filter(task => task.id !== id));
+  }, []);
 
   return { tasks, loading, addTask, toggleTask, deleteTask, refresh };
 }

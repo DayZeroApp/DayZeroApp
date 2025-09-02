@@ -6,9 +6,14 @@ import { Animated, Text, TouchableOpacity } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
 
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, signInWithCredential, signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+
+// Helper function to check if error has a code property
+function isErrorWithCode(error: any): error is { code: string } {
+  return error && typeof error.code === 'string';
+}
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -18,12 +23,15 @@ export default function LoginScreen() {
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }).start();
 
+    // Debug environment variables
+    console.log('Environment variables check:');
+    console.log('GOOGLE_CLIENT_ID exists:', !!process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID);
+    console.log('GOOGLE_CLIENT_ID length:', process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.length);
+    console.log('GOOGLE_CLIENT_ID starts with:', process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.substring(0, 20));
+
     // Configure Google Sign-In
     GoogleSignin.configure({
-      scopes: ['profile'],
-      webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!, // Web client ID
-      iosClientId: process.env.EXPO_PUBLIC_IOS_GOOGLE_CLIENT_ID, // optional for iOS later
-      offlineAccess: false,
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
     });
   }, [router, fadeAnim]);
 
@@ -38,21 +46,37 @@ export default function LoginScreen() {
 
   async function handleSignInWithGoogle() {
     if (isSigninInProgress) return;
-
+  
     try {
       setIsSigninInProgress(true);
-
+      console.log('Starting Google Sign-in process...');
+  
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const userInfo = await GoogleSignin.signIn();
-      const idToken = (userInfo as any).idToken;
-      if (!idToken) throw new Error('No idToken from Google');
-      const cred = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(auth, cred);
 
-      console.log('Firebase sign in successful');
-      // Navigation can be handled here or by an auth-state listener elsewhere
-    } catch (error: any) {
+      try {
+        const res = await GoogleSignin.signIn();       // should show account picker
+        const idToken = (res as any).idToken ?? (res as any).data?.idToken ?? null;
+
+        let token = idToken;
+        if (!token) {
+          const t = await GoogleSignin.getTokens();    // fallback from Play Services
+          token = t?.idToken ?? null;
+        }
+        if (!token) throw new Error('No idToken from Google');
+
+        const cred = GoogleAuthProvider.credential(token);
+        await signInWithCredential(auth, cred);
+      } catch (e: any) {
+        if (isErrorWithCode(e) && e.code === statusCodes.SIGN_IN_REQUIRED) {
+          console.log('No usable Google session. Ensure Google account added & Play image/updates.');
+        } else {
+          console.error('Google sign-in failed:', e);
+        }
+      }
+  
+    } catch (error) {
       console.error('Error signing in with Google:', error);
+      // … your existing error handling stays the same
     } finally {
       setIsSigninInProgress(false);
     }

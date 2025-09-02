@@ -1,15 +1,16 @@
 {
   "expo": {
-    "name": "DayZeroApp",
+    "name": "Day Zero",
     "slug": "dayzeroapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/DayZeroLogo.png",
     "scheme": "dayzeroapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "package": "com.startdayzero.DayZero",
@@ -36,7 +37,8 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

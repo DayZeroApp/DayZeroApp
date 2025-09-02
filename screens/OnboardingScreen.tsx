@@ -4,7 +4,6 @@ import { useRef, useState } from 'react';
 import { Animated, Keyboard, Pressable, TextInput, View } from 'react-native';
 import { ThemedText } from '../components/ThemedText';
 import { ThemedView } from '../components/ThemedView';
-import { setOnboarded } from "../lib/storage";
 
 const DURATION_PRESETS = [7, 14, 21];
 
@@ -35,7 +34,7 @@ export default function OnboardingScreen() {
 
   async function handleFinishOnboarding(title: string) {
     await addTask(title.trim());
-    await setOnboarded();
+    // No persistence needed since we're using in-memory storage
     router.replace("/(tabs)");
   }
 

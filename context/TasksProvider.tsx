@@ -1,4 +1,3 @@
-import { loadHabits, saveHabits } from "@/lib/storage";
 import { Habit } from "@/utils/habits";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 // optional: import notifications helpers and call them inside add/toggle/delete
@@ -19,18 +18,17 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   const refresh = useCallback(async () => {
-    const data = await loadHabits();
-    setTasks(data);
+    // In-memory storage - no persistence needed
     setHydrated(true);
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  // Persist after hydration
-  useEffect(() => {
-    if (!hydrated) return;
-    void saveHabits(tasks);
-  }, [tasks, hydrated]);
+  // No persistence needed since we're using in-memory storage
+  // useEffect(() => {
+  //   if (!hydrated) return;
+  //   void saveHabits(tasks);
+  // }, [tasks, hydrated]);
 
   const addTask = useCallback(async (title: string, icon: string = "meditation", targetPerWeek: number = 5, targetTimes: string[] = ["08:00"]) => {
     const id = Math.random().toString(36).slice(2);

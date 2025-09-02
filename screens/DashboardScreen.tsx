@@ -7,7 +7,6 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { cancelHabitNotifications, ensureNotificationSetup, rescheduleHabitNotifications, scheduleHabitNotifications } from "../lib/notifications";
-import { getOnboarded, loadLogs, saveLogs } from "../lib/storage";
 
 import { useTasks } from "@/context/TasksProvider";
 import AddHabitModal from "../components/AddHabitModal";
@@ -36,25 +35,24 @@ export default function DashboardScreen(): React.JSX.Element {
     ReactNav.useCallback(() => {
       let active = true;
       (async () => {
-        const onboarded = await getOnboarded();
-        const l = await loadLogs();
+        // In-memory storage - no persistence needed
         if (!active) return;
-
-        setLogs(l ?? []);
+        setLogs([]);
       })();
       return () => { active = false; };
     }, [])
   );
 
-  // Persist logs ONLY after hydration
-  useEffect(() => {
-    if (!hydrated) return;               // 👈 guard
-    saveLogs(logs);
-  }, [logs, hydrated]);
+  // No persistence needed since we're using in-memory storage
+  // useEffect(() => {
+  //   if (!hydrated) return;               // 👈 guard
+  //   saveLogs(logs);
+  // }, [logs, hydrated]);
 
   // Notification setup on mount
   useEffect(() => {
     (async () => {
+      console.log('WEB ID:', process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.slice(0, 20));
       await ensureNotificationSetup();
       // Optional: reschedule on launch to be safe (if you persist habits)
       // await rescheduleAll(tasks);

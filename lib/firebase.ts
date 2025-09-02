@@ -1,6 +1,6 @@
 // lib/firebase.ts
-import { getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getApps, initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey:        process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -12,5 +12,6 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-export const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+
 export const auth = getAuth(app);

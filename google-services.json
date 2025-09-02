@@ -22,15 +22,7 @@
           }
         },
         {
-          "client_id": "960966709168-m6utg0g7duvrekip0gq51v96ueib3nhc.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.startdayzero.DayZero",
-            "certificate_hash": "4fa15bf0b5dc1bb0000deb9409ae541db8eb3a0a"
-          }
-        },
-        {
-          "client_id": "960966709168-hofk5o314mru8nhs5v20l8efd8g3ijnp.apps.googleusercontent.com",
+          "client_id": "960966709168-fj29h24bn5on25vv0tuk3ssc4tdldcul.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -43,8 +35,15 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "960966709168-hofk5o314mru8nhs5v20l8efd8g3ijnp.apps.googleusercontent.com",
+              "client_id": "960966709168-fj29h24bn5on25vv0tuk3ssc4tdldcul.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "960966709168-s317hcmde6fvk83531ugq570q1h4guiv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.startdayzero.DayZero"
+              }
             }
           ]
         }
