@@ -16,7 +16,7 @@
       "package": "com.startdayzero.DayZero",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/DayZeroLogo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
