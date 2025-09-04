@@ -22,11 +22,12 @@ function useProtectedRoute() {
     // Check current auth state
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       const inAuthGroup = segments[0] === '(tabs)';
+      const inSettings = segments[0] === 'settings';
       
-      if (!user && inAuthGroup) {
+      if (!user && (inAuthGroup || inSettings)) {
         // If user is not signed in and trying to access protected route, redirect to login
         router.replace('/login');
-      } else if (user && !inAuthGroup) {
+      } else if (user && !inAuthGroup && !inSettings && segments[0] !== 'oauth') {
         // If user is signed in and trying to access auth route, redirect to tabs
         router.replace('/(tabs)');
       }

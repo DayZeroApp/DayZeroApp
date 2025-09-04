@@ -2,6 +2,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import * as ReactNav from "react"; // alias for callback
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -9,6 +10,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { cancelHabitNotifications, ensureNotificationSetup, rescheduleHabitNotifications, scheduleHabitNotifications } from "../lib/notifications";
 
 import { useTasks } from "@/context/TasksProvider";
+import { useAuth } from "@/hooks/useAuth";
 import AddHabitModal from "../components/AddHabitModal";
 import HabitCard from "../components/HabitCard";
 import LogHabitModal from "../components/LogHabitModal";
@@ -18,8 +20,10 @@ import ProgressTab from "./ProgressTab";
 import ReflectionTab from "./ReflectionTab";
 
 export default function DashboardScreen(): React.JSX.Element {
+  const router = useRouter();
   const [tab, setTab] = useState<"dashboard"|"progress"|"reflection">("dashboard");
   const { tasks, hydrated, addTask, toggleTask, deleteTask } = useTasks();
+  const { firstName, loading: authLoading } = useAuth();
   const [logs, setLogs] = useState<HabitLog[]>([]);
   
   const [addOpen, setAddOpen] = useState(false);
@@ -118,7 +122,7 @@ export default function DashboardScreen(): React.JSX.Element {
   };
 
   // render from tasks; guard while hydrating
-  if (!hydrated) return <ThemedView><Text style={{color:"#fff"}}>Loading…</Text></ThemedView>;
+  if (!hydrated || authLoading) return <ThemedView><Text style={{color:"#fff"}}>Loading…</Text></ThemedView>;
 
   return (
     <ThemedView style={{ flex: 1, backgroundColor: "#000", padding: 20 }}>
@@ -161,13 +165,13 @@ export default function DashboardScreen(): React.JSX.Element {
           <View>
             <Text style={{ color: "#9CA3AF", fontSize: 14 }}>Welcome back,</Text>
             <Text style={{ color: "white", fontSize: 22, fontWeight: "bold" }}>
-              James 👋
+              {firstName || 'User'}  👋
             </Text>
           </View>
           <TouchableOpacity
             onPress={() => {
-              // TODO: Navigate to settings
-              console.log("Settings pressed");
+              console.log('Settings button pressed');
+              router.push('/(tabs)/settings');
             }}
             style={{
               backgroundColor: "#1F2937",

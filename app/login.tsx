@@ -114,18 +114,15 @@ export default function LoginScreen() {
         <ThemedText style={{ fontSize: 42, fontWeight: 'bold', color: 'white', marginBottom: 16, lineHeight: 50, paddingVertical: 4 }}>
           DAY ZERO
         </ThemedText>
+        <ThemedText style={{ fontSize: 30, fontWeight: 'bold', color: 'white', marginBottom: 16, lineHeight: 50, paddingVertical: 4 }}>
+          Start Your Journey
+        </ThemedText>
         <ThemedText style={{ fontSize: 18, color: '#9ca3af', textAlign: 'center', marginBottom: 48, maxWidth: 300, lineHeight: 24 }}>
           Reset. Rebuild. Refocus.
         </ThemedText>
 
         <CustomGoogleButton />
-
-        <TouchableOpacity
-          onPress={handleSignOut}
-          style={{ backgroundColor: '#dc2626', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, marginTop: 24 }}
-        >
-          <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>Sign Out (Test)</Text>
-        </TouchableOpacity>
+      
       </Animated.View>
     </ThemedView>
   );
