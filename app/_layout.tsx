@@ -1,3 +1,4 @@
+import { LogsProvider } from '@/context/LogsProvider';
 import { TasksProvider } from '@/context/TasksProvider';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -77,23 +78,25 @@ export default function RootLayout() {
 
   return (
     <TasksProvider>
-      <View style={{ flex: 1, backgroundColor: '#000000' }}>
-        <ThemeProvider value={customDarkTheme}>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: '#000000' },
-              animation: 'fade',
-            }}
-          >
-            <Stack.Screen name="login" />
-            <Stack.Screen name="onboarding" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="light" />
-        </ThemeProvider>
-      </View>
+      <LogsProvider>
+        <View style={{ flex: 1, backgroundColor: '#000000' }}>
+          <ThemeProvider value={customDarkTheme}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: '#000000' },
+                animation: 'fade',
+              }}
+            >
+              <Stack.Screen name="login" />
+              <Stack.Screen name="onboarding" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="light" />
+          </ThemeProvider>
+        </View>
+      </LogsProvider>
     </TasksProvider>
   );
 }
