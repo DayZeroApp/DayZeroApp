@@ -2,6 +2,7 @@ import { LogsProvider } from '@/context/LogsProvider';
 import { TasksProvider } from '@/context/TasksProvider';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import * as NavigationBar from 'expo-navigation-bar';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -47,6 +48,18 @@ export default function RootLayout() {
   });
 
   const isLoading = useProtectedRoute();
+
+  // Navigation bar setup for Android
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      // Show on swipe, overlay content
+      NavigationBar.setBehaviorAsync('overlay-swipe');
+      // Hide the bar initially
+      NavigationBar.setVisibilityAsync('hidden');
+      // Optional: make it transparent so content goes edge-to-edge
+      NavigationBar.setBackgroundColorAsync('transparent');
+    }
+  }, []);
 
   // Notification setup
   useEffect(() => {
