@@ -1,3 +1,5 @@
+import { createHabitLocal } from "@/lib/habits-local";
+import { Local } from "@/lib/local";
 import { Habit } from "@/utils/habits";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 // optional: import notifications helpers and call them inside add/toggle/delete
@@ -18,29 +20,52 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   const refresh = useCallback(async () => {
-    // In-memory storage - no persistence needed
-    setHydrated(true);
+    try {
+      console.log('🔄 Loading habits from AsyncStorage...');
+      const habits = await Local.getHabits();
+      console.log('📦 Raw habits from storage:', habits);
+      
+      // Convert from Local storage format to Habit format
+      const convertedHabits: Habit[] = habits.map(h => ({
+        id: h.id,
+        title: h.title,
+        icon: h.icon || 'meditation', // Use stored icon or default
+        targetPerWeek: h.targetPerWeek || 5, // Use stored value or default
+        targetTimes: h.targetTimes || ['08:00'] // Use stored value or default
+      }));
+      
+      console.log('✅ Converted habits for UI:', convertedHabits);
+      setTasks(convertedHabits);
+      setHydrated(true);
+    } catch (error) {
+      console.error('❌ Failed to load habits:', error);
+      setHydrated(true);
+    }
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  // No persistence needed since we're using in-memory storage
-  // useEffect(() => {
-  //   if (!hydrated) return;
-  //   void saveHabits(tasks);
-  // }, [tasks, hydrated]);
-
   const addTask = useCallback(async (title: string, icon: string = "meditation", targetPerWeek: number = 5, targetTimes: string[] = ["08:00"]) => {
-    const id = Math.random().toString(36).slice(2);
-    const newHabit: Habit = {
-      id,
-      title,
-      icon,
-      targetPerWeek,
-      targetTimes
-    };
-    setTasks(prev => [newHabit, ...prev]);
-    // optional: schedule notification here
+    try {
+      console.log('➕ Creating new habit:', { title, icon, targetPerWeek, targetTimes });
+      const id = await createHabitLocal(title, icon, targetPerWeek, targetTimes);
+      console.log('🆔 Generated habit ID:', id);
+      
+      const newHabit: Habit = {
+        id,
+        title,
+        icon,
+        targetPerWeek,
+        targetTimes
+      };
+      
+      console.log('💾 Saving habit to AsyncStorage...');
+      setTasks(prev => [newHabit, ...prev]);
+      console.log('✅ Habit created and saved successfully!');
+      // optional: schedule notification here
+    } catch (error) {
+      console.error('❌ Failed to create habit:', error);
+    }
   }, []);
 
   const toggleTask = useCallback(async (id: string) => {
@@ -50,8 +75,15 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const deleteTask = useCallback(async (id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
-    // optional: cancel notification here
+    try {
+      const habits = await Local.getHabits();
+      const updatedHabits = habits.filter(h => h.id !== id);
+      await Local.setHabits(updatedHabits);
+      setTasks(prev => prev.filter(t => t.id !== id));
+      // optional: cancel notification here
+    } catch (error) {
+      console.error('Failed to delete habit:', error);
+    }
   }, []);
 
   const value = useMemo(() => ({ tasks, hydrated, addTask, toggleTask, deleteTask, refresh }), [tasks, hydrated, addTask, toggleTask, deleteTask, refresh]);

@@ -12,6 +12,7 @@ import { Platform, View } from 'react-native';
 import 'react-native-get-random-values';
 import 'react-native-reanimated';
 import 'react-native-url-polyfill/auto';
+import { hydrateApp } from '../lib/bootstrap';
 import { auth } from '../lib/firebase';
 
 // This hook will protect the route access based on user authentication
@@ -48,6 +49,19 @@ export default function RootLayout() {
   });
 
   const isLoading = useProtectedRoute();
+
+  // Initialize app data
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        await hydrateApp();
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+      }
+    };
+    
+    initializeApp();
+  }, []);
 
   // Navigation bar setup for Android
   useEffect(() => {

@@ -293,6 +293,16 @@ export default function SettingsScreen() {
         />
       </Section>
 
+      {/* Debug */}
+      <Section title="Debug">
+        <Row
+          title="Storage Debug"
+          subtitle="View AsyncStorage contents"
+          onPress={() => router.push('/debug-storage' as any)}
+          right={<Ionicons name="bug-outline" size={18} color="#9ca3af" />}
+        />
+      </Section>
+
       {/* About */}
       <Section title="About">
         <Row
