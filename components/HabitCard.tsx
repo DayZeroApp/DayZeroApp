@@ -1,5 +1,4 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import React from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { calcProgress, calcStreak, Habit, HabitLog, hasLoggedToday } from "../utils/habits";
 import ProgressRing from "./ProgressRing";
@@ -23,9 +22,10 @@ export default function HabitCard({
   onDelete,
   onEdit,
 }: Props) {
-  const streak = calcStreak(habit, logs);
-  const { count, pct } = calcProgress(habit, logs);
-  const loggedToday = hasLoggedToday(habit.id, logs); // NEW
+  // Calculate habit statistics using utility functions
+  const streak = calcStreak(habit, logs); // Current consecutive day streak
+  const { count, pct } = calcProgress(habit, logs); // Weekly progress count and percentage
+  const loggedToday = hasLoggedToday(habit.id, logs); // Check if habit was already logged today
 
   const confirmDelete = () => {
     if (!onDelete) return;
@@ -41,13 +41,15 @@ export default function HabitCard({
 
   return (
     <View style={{ backgroundColor: "#111827", borderRadius: 16, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: "#1f2937" }}>
-      {/* top row */}
+      {/* Main content row with progress ring, habit info, and action buttons */}
       <View style={{ flexDirection: "row", alignItems: "center" }}>
+        {/* Progress ring showing weekly completion percentage */}
         <ProgressRing
           progress={pct}
           label={<MaterialCommunityIcons name={habit.icon as any} size={18} color="#60A5FA" /> as any}
           subLabel={`${Math.round(pct * 100)}%`}
         />
+        {/* Habit title and progress information */}
         <View style={{ marginLeft: 12, flex: 1 }}>
           <Text style={{ color: "white", fontWeight: "700", fontSize: 16 }}>{habit.title}</Text>
           <Text style={{ color: "#9CA3AF", fontSize: 12 }}>
@@ -55,59 +57,37 @@ export default function HabitCard({
           </Text>
         </View>
 
-        {/* Quick log */}
-        <TouchableOpacity
-          disabled={loggedToday}
-          onPress={() => onQuickLog(habit)}
-          style={{
-            backgroundColor: loggedToday ? "#374151" : "#10B981",
-            paddingVertical: 8,
-            paddingHorizontal: 12,
-            borderRadius: 10,
-            marginRight: 8,
-            opacity: loggedToday ? 0.9 : 1,
-          }}
-        >
-          <Text style={{ color: "white", fontWeight: "700" }}>
-            {loggedToday ? "Logged ✓" : "Quick log"}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Edit */}
+        {/* Edit button - only shown if onEdit handler is provided */}
         {onEdit && (
           <TouchableOpacity
             onPress={() => onEdit(habit)}
             style={{ backgroundColor: "#1E40AF", padding: 8, borderRadius: 8, marginRight: 8 }}
           >
-            <Ionicons name="create-outline" size={16} color="white" />
+            <Ionicons name="create-outline" size={25} color="white" />
           </TouchableOpacity>
         )}
 
-        {/* Delete */}
+        {/* Delete button - only shown if onDelete handler is provided, with confirmation dialog */}
         {onDelete && (
           <TouchableOpacity
             onPress={confirmDelete}
             style={{ backgroundColor: "#B91C1C", padding: 8, borderRadius: 8 }}
           >
-            <Ionicons name="trash-outline" size={16} color="white" />
+            <Ionicons name="trash-outline" size={25} color="white" />
           </TouchableOpacity>
         )}
       </View>
 
-      {/* actions */}
-      <View style={{ flexDirection: "row", marginTop: 12 }}>
+      {/* Bottom action buttons row */}
+      <View style={{ alignItems: "center", marginTop: 12 }}>
+        {/* Log today button - opens modal for adding notes/mood, always available */}
         <TouchableOpacity
           onPress={() => onLog(habit)} // still lets them add a note/mood even if already logged
-          style={{ backgroundColor: "#2563EB", paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, marginRight: 10 }}
+          style={{ backgroundColor: "#2563EB", paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, marginRight: 10, width: "50%" }}
         >
-          <Text style={{ color: "white", fontWeight: "600" }}>Log today</Text>
+          <Text style={{ color: "white", fontWeight: "600", textAlign: "center" }}>Log today</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => onDetails?.(habit)}
-          style={{ backgroundColor: "#1F2937", paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10 }}
-        >
-          <Text style={{ color: "white" }}>Details</Text>
-        </TouchableOpacity>
+        {/* Details button - shows habit details/history */}
       </View>
     </View>
   );

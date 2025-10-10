@@ -138,10 +138,7 @@ export default function DashboardScreen(): React.JSX.Element {
             }}
           >
             <View>
-              <Text style={{ color: "#9CA3AF", fontSize: 14 }}>Welcome back,</Text>
-              <Text style={{ color: "white", fontSize: 22, fontWeight: "bold" }}>
-                {firstName || 'User'}  👋
-              </Text>
+              <Text style={{ color: "white", fontSize: 26 }}>Welcome back, {firstName || 'User'}  👋</Text>           
             </View>
           </View>
         </SafeAreaView>

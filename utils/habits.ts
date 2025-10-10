@@ -48,3 +48,65 @@ export function withinWeek(date: string): boolean {
   
   return logDate >= startOfWeek && logDate <= endOfWeek;
 }
+
+function prevDay(dayId: string): string {
+  // dayId = "YYYY-MM-DD"
+  const [y, m, d] = dayId.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() - 1);
+  return dt.toISOString().slice(0, 10); // "YYYY-MM-DD"
+}
+
+/**
+ * Count consecutive completed days for a habit, ending today.
+ * Assumes HabitLog.date uses the same format as isoToday() ("YYYY-MM-DD").
+ * Updated to accept either a Habit object or habitId string for flexibility.
+ */
+export function calcStreak(habitOrId: Habit | string, logs: HabitLog[]): number {
+  if (!Array.isArray(logs) || logs.length === 0) return 0;
+
+  // Extract habitId from either Habit object or string
+  const habitId = typeof habitOrId === 'string' ? habitOrId : habitOrId.id;
+
+  // Build a Set of completed dayIds for this habit
+  const doneDays = new Set(
+    logs
+      .filter(l => l.habitId === habitId && isCompletedLog(l))
+      .map(l => l.date)
+  );
+
+  // Count backwards from today until a day is missing
+  let count = 0;
+  let day = isoToday();
+  while (doneDays.has(day)) {
+    count += 1;
+    day = prevDay(day);
+  }
+  return count;
+}
+
+/** Optional: how many completed this week (Sun–Sat) */
+export function weekCompletions(habitId: string, logs: HabitLog[]): number {
+  return logs.filter(l => l.habitId === habitId && isCompletedLog(l) && withinWeek(l.date)).length;
+}
+
+/**
+ * Calculate progress for a habit this week
+ * Returns both the count of completed logs and the percentage of target achieved
+ */
+export function calcProgress(habit: Habit, logs: HabitLog[]): { count: number; pct: number } {
+  // Count completed logs for this habit within the current week
+  const completedThisWeek = logs.filter(l => 
+    l.habitId === habit.id && 
+    isCompletedLog(l) && 
+    withinWeek(l.date)
+  ).length;
+  
+  // Calculate percentage of weekly target achieved
+  const percentage = habit.targetPerWeek > 0 ? completedThisWeek / habit.targetPerWeek : 0;
+  
+  return {
+    count: completedThisWeek,
+    pct: Math.min(percentage, 1) // Cap at 100%
+  };
+}
