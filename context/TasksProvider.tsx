@@ -29,7 +29,7 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
       const convertedHabits: Habit[] = habits.map(h => ({
         id: h.id,
         title: h.title,
-        icon: h.icon || 'meditation', // Use stored icon or default
+        icon: h.icon || '🧘‍♂️', // Use stored icon or default emoji
         targetPerWeek: h.targetPerWeek || 5, // Use stored value or default
         targetTimes: h.targetTimes || ['08:00'] // Use stored value or default
       }));
@@ -45,7 +45,7 @@ export function TasksProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  const addTask = useCallback(async (title: string, icon: string = "meditation", targetPerWeek: number = 5, targetTimes: string[] = ["08:00"]) => {
+  const addTask = useCallback(async (title: string, icon: string = "🧘‍♂️", targetPerWeek: number = 5, targetTimes: string[] = ["08:00"]) => {
     try {
       console.log('➕ Creating new habit:', { title, icon, targetPerWeek, targetTimes });
       const id = await createHabitLocal(title, icon, targetPerWeek, targetTimes);

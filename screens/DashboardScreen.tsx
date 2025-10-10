@@ -53,7 +53,7 @@ export default function DashboardScreen(): React.JSX.Element {
     d.setDate(d.getDate() + days);
     setSelected(format(d, 'yyyy-MM-dd'));
   };
-  const pretty = (dStr: string) => format(new Date(dStr), 'EEEE, MMM d');
+  const pretty = (dStr: string) => format(new Date(dStr + 'T00:00:00'), 'EEEE, MMM d');
   const resetToToday = () => setSelected(format(new Date(), 'yyyy-MM-dd'));
   
   const [addOpen, setAddOpen] = useState(false);
@@ -189,7 +189,7 @@ export default function DashboardScreen(): React.JSX.Element {
         {view === 'week' && (
           <View style={{ flexDirection:'row', justifyContent:'space-between', marginTop: 4, marginBottom: 8 }}>
             {Array.from({ length: 7 }).map((_, i) => {
-              const start = startOfWeek(new Date(selected), { weekStartsOn: 0 });
+              const start = startOfWeek(new Date(selected + 'T00:00:00'), { weekStartsOn: 0 });
               const d = addDays(start, i);
               const key = format(d, 'yyyy-MM-dd');
               const active = key === selected;
@@ -230,8 +230,8 @@ export default function DashboardScreen(): React.JSX.Element {
           {(view === 'month' || view === 'week') && (
             <Text style={{ color:'#9CA3AF', marginBottom: 8 }}>
               {view === 'month'
-                ? format(new Date(selected), 'MMMM yyyy')
-                : `Week of ${format(startOfWeek(new Date(selected), { weekStartsOn: 0 }), 'MMM d')}`}
+                ? format(new Date(selected + 'T00:00:00'), 'MMMM yyyy')
+                : `Week of ${format(startOfWeek(new Date(selected + 'T00:00:00'), { weekStartsOn: 0 }), 'MMM d')}`}
             </Text>
           )}
 
@@ -263,7 +263,7 @@ export default function DashboardScreen(): React.JSX.Element {
                 key={task.id}
                 habit={task}
                 // still show logs from the selected day
-                logs={logs.filter(l => isSameDay(new Date(l.date), new Date(selected)))}
+                logs={logs.filter(l => isSameDay(new Date(l.date + 'T00:00:00'), new Date(selected + 'T00:00:00')))}
                 onLog={(h) => setLogOpen({ open: true, habit: h })}
                 onQuickLog={quickLog}
                 onDetails={() => {}}

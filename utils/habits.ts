@@ -20,7 +20,11 @@ export type HabitLog = {
 
 // Helpers
 export function isoToday(): string {
-  return new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function hasLoggedToday(habitId: string, logs: HabitLog[]): boolean {
@@ -34,7 +38,7 @@ export function isCompletedLog(log: HabitLog): boolean {
 
 export function withinWeek(date: string): boolean {
   const today = new Date();
-  const logDate = new Date(date);
+  const logDate = new Date(date + 'T00:00:00'); // Parse as local time
   
   // Get start of current week (Sunday)
   const startOfWeek = new Date(today);

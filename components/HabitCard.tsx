@@ -1,4 +1,4 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { calcProgress, calcStreak, Habit, HabitLog, hasLoggedToday } from "../utils/habits";
 import ProgressRing from "./ProgressRing";
@@ -46,7 +46,7 @@ export default function HabitCard({
         {/* Progress ring showing weekly completion percentage */}
         <ProgressRing
           progress={pct}
-          label={<MaterialCommunityIcons name={habit.icon as any} size={18} color="#60A5FA" /> as any}
+          label={<Text style={{ fontSize: 18 }}>{habit.icon}</Text> as any}
           subLabel={`${Math.round(pct * 100)}%`}
         />
         {/* Habit title and progress information */}

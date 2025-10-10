@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FlatList, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type HabitForm = {
@@ -15,7 +15,7 @@ type Props = {
   initial?: HabitForm;              // NEW: pass to edit
 };
 
-const ICONS = ["meditation", "book", "run-fast", "apple", "dumbbell", "yoga", "water", "brain"];
+const ICONS = ["🧘‍♂️", "📚", "🏃‍♂️", "🍎","💪","💧","🧠"];
 
 function isValidTime(s: string) {
   // "HH:MM" 24h
@@ -25,7 +25,7 @@ function isValidTime(s: string) {
 
 export default function AddHabitModal({ visible, onClose, onSubmit, initial }: Props) {
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [icon, setIcon] = useState(initial?.icon ?? "meditation");
+  const [icon, setIcon] = useState(initial?.icon ?? "🧘‍♂️");
   const [tpw, setTpw] = useState(String(initial?.targetPerWeek ?? 5));
   const [targetTimes, setTargetTimes] = useState<string[]>(initial?.targetTimes ?? []);
   const [timeInput, setTimeInput] = useState("");
@@ -34,7 +34,7 @@ export default function AddHabitModal({ visible, onClose, onSubmit, initial }: P
   useEffect(() => {
     if (!visible) return;
     setTitle(initial?.title ?? "");
-    setIcon(initial?.icon ?? "meditation");
+    setIcon(initial?.icon ?? "🧘‍♂️");
     setTpw(String(initial?.targetPerWeek ?? 5));
     setTargetTimes(initial?.targetTimes ?? []);
     setTimeInput("");
@@ -54,7 +54,7 @@ export default function AddHabitModal({ visible, onClose, onSubmit, initial }: P
     if (!canSave) return;
     onSubmit({
       title: title.trim(),
-      icon: icon.trim() || "meditation",
+      icon: icon.trim() || "🧘‍♂️",
       targetPerWeek: Math.max(1, Math.min(7, Number(tpw) || 5)),
       targetTimes,
     });
@@ -74,7 +74,7 @@ export default function AddHabitModal({ visible, onClose, onSubmit, initial }: P
 
           {/* Title */}
           <TextInput
-            placeholder="Title (e.g., Meditate)"
+            placeholder="Title (e.g., Meditation)"
             placeholderTextColor="#9CA3AF"
             value={title}
             onChangeText={setTitle}
@@ -82,6 +82,9 @@ export default function AddHabitModal({ visible, onClose, onSubmit, initial }: P
           />
 
           {/* Icon (simple chip picker) */}
+          <Text style={{ color:"#9CA3AF", marginBottom:6 }}>
+            Choose an icon closely related to the habit
+          </Text>
           <FlatList
             data={ICONS}
             keyExtractor={(i) => i}
@@ -107,6 +110,7 @@ export default function AddHabitModal({ visible, onClose, onSubmit, initial }: P
           />
 
           {/* Target per week */}
+          <Text style={{ color:"#9CA3AF", marginBottom:6 }}>Target per week (1–7)</Text>
           <TextInput
             placeholder="Target per week (1–7)"
             placeholderTextColor="#9CA3AF"
