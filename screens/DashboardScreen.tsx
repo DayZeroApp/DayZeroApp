@@ -78,21 +78,25 @@ export default function DashboardScreen(): React.JSX.Element {
   // --- CRUD handlers ---
   // ADD
   const handleAddHabit = async (p: { title: string; icon: string; targetPerWeek: number; targetTimes?: string[] }) => {
-    await addTask(p.title, p.icon, p.targetPerWeek, p.targetTimes);
+    await addTask(p.title, p.icon, p.targetPerWeek, p.targetTimes, { dayId: selected });
 
     // schedule reminders for the new habit
-    const newHabit = { id: Math.random().toString(36).slice(2), ...p };
+    const newHabit = { id: Math.random().toString(36).slice(2), ...p, createdDayId: selected };
     await scheduleHabitNotifications(newHabit);
   };
 
   // EDIT
   const handleEditHabit = async (id: string, p: { title: string; icon: string; targetPerWeek: number; targetTimes?: string[] }) => {
-    // TODO: Implement edit functionality in TasksProvider
-    // For now, we'll delete and recreate
-    await deleteTask(id);
-    await addTask(p.title, p.icon, p.targetPerWeek, p.targetTimes);
+    // Find the original habit to preserve its createdDayId
+    const originalHabit = tasks.find(t => t.id === id);
+    const preservedDayId = originalHabit?.createdDayId;
     
-    const updated = { id, ...p };
+    // TODO: Implement edit functionality in TasksProvider
+    // For now, we'll delete and recreate, preserving the original createdDayId
+    await deleteTask(id);
+    await addTask(p.title, p.icon, p.targetPerWeek, p.targetTimes, preservedDayId ? { dayId: preservedDayId } : undefined);
+    
+    const updated = { id, ...p, createdDayId: preservedDayId || selected };
     await rescheduleHabitNotifications(updated);
   };
 
@@ -119,9 +123,8 @@ export default function DashboardScreen(): React.JSX.Element {
   // render from tasks; guard while hydrating
   if (!hydrated || authLoading) return <ThemedView><Text style={{color:"#fff"}}>Loading…</Text></ThemedView>;
 
-  // Tasks for selected day
-  const visibleTasks = tasks; 
-  // later: filter by day if you add scheduling, e.g. tasks.filter(t => isDueOn(t, selected))
+  // Tasks for selected day - filter by createdDayId
+  const visibleTasks = tasks.filter(t => t.createdDayId === selected);
 
   return (
     <ThemedView style={{ flex: 1, backgroundColor: "#000", padding: 20 }}>
@@ -144,7 +147,7 @@ export default function DashboardScreen(): React.JSX.Element {
         </SafeAreaView>
 
         {/* Segmented control: Today / Week / Month */}
-        <View style={{ flexDirection:'row', marginBottom: 12, marginTop: 12 }}>
+        <View style={{ flexDirection:'row', justifyContent:'center', alignItems:'center', marginBottom: 12, marginTop: 12 }}>
           {(['today','week','month'] as const).map((v, i) => {
             const active = view === v;
             const label = v === 'today' ? 'Day' : v === 'week' ? 'Week' : 'Month';
@@ -153,6 +156,7 @@ export default function DashboardScreen(): React.JSX.Element {
                 key={v}
                 onPress={() => setView(v)}
                 style={{
+                  flex: 1,
                   backgroundColor: active ? '#1E3A8A' : '#111827',
                   borderColor: active ? '#3B82F6' : '#1f2937',
                   borderWidth: 1,
@@ -160,6 +164,8 @@ export default function DashboardScreen(): React.JSX.Element {
                   paddingVertical: 8,
                   paddingHorizontal: 12,
                   marginRight: i < 2 ? 8 : 0,
+                  alignItems:'center',
+                  justifyContent:'center',
                 }}
               >
                 <Text style={{ color:'#fff', fontWeight: active ? '700' : '500' }}>{label}</Text>

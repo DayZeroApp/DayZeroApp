@@ -2,9 +2,15 @@
 import { Local } from '@/lib/local';
 import { localDayId } from '@/lib/time';
 
-export async function createHabitLocal(title: string, icon: string = 'meditation', targetPerWeek: number = 5, targetTimes: string[] = ['08:00']) {
+export async function createHabitLocal(title: string, icon: string = 'meditation', targetPerWeek: number = 5, targetTimes: string[] = ['08:00'], opts?: { dayId?: string; tz?: string }) {
   const id = Math.random().toString(36).substring(2) + Date.now().toString(36);
   const habits = await Local.getHabits();
+  
+  // Determine timezone and createdDayId
+  const profile = await Local.getProfile();
+  const tz = opts?.tz ?? profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const createdDayId = opts?.dayId ?? localDayId(tz);
+  
   habits.push({ 
     id, 
     title, 
@@ -15,7 +21,8 @@ export async function createHabitLocal(title: string, icon: string = 'meditation
     active: true, 
     streakCount: 0, 
     createdAt: Date.now(), 
-    updatedAt: Date.now() 
+    updatedAt: Date.now(),
+    createdDayId
   });
   await Local.setHabits(habits);
   return id;

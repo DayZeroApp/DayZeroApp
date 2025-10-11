@@ -68,9 +68,26 @@ export default function AddHabitModal({ visible, onClose, onSubmit, initial }: P
           {/* handle bar */}
           <View style={{ alignSelf:"center", width:44, height:4, backgroundColor:"#334155", borderRadius:2, marginBottom:12 }} />
 
-          <Text style={{ color:"white", fontSize:18, fontWeight:"700", marginBottom:12 }}>
-            {initial ? "Edit Habit" : "New Habit"}
-          </Text>
+          {/* Header */}
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+            <Text style={{ color: "white", fontSize: 18, fontWeight: "700", flex: 1 }}>
+              {initial ? "Edit Habit" : "New Habit"}
+            </Text>
+
+            <TouchableOpacity
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+              style={{
+                backgroundColor: "transparent",
+                padding: 10,
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ color: "#9CA3AF", fontSize: 18 }}>✕</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Title */}
           <TextInput
@@ -149,10 +166,7 @@ export default function AddHabitModal({ visible, onClose, onSubmit, initial }: P
           </View>
 
           {/* Actions */}
-          <View style={{ flexDirection:"row", justifyContent:"flex-end", marginTop:16 }}>
-            <TouchableOpacity onPress={onClose} style={{ marginRight:12 }}>
-              <Text style={{ color:"#9CA3AF" }}>Cancel</Text>
-            </TouchableOpacity>
+          <View style={{ alignItems:"flex-end", marginTop: 16 }}>
             <TouchableOpacity onPress={submit} disabled={!canSave}>
               <Text style={{ color: canSave ? "#60A5FA" : "#475569", fontWeight:"700" }}>
                 {initial ? "Save" : "Add"}

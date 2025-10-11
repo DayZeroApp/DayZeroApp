@@ -8,6 +8,9 @@ export type Habit = {
   icon: string;
   targetPerWeek: number;
   targetTimes?: string[];
+  createdAt?: number;
+  updatedAt?: number;
+  createdDayId: string; // YYYY-MM-DD format
 };
 
 export type HabitLog = {
