@@ -1,6 +1,6 @@
 // utils/habits.ts
 
-export type Mood = "great" | "ok" | "bad" | "skip";
+export type Mood = "great" | "ok" | "hard" | "skip";
 
 export type Habit = {
   id: string;
